@@ -1,11 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
+import { token } from "../../../declarations/token";
+import { Principal } from "@dfinity/principal"
 
 function Balance() {
-  
-  async function handleClick() {
-    console.log("Balance Button Clicked");
-  }
+  const [balanceId, setBalanceId] = useState("")
+  const [balance, setBalance] = useState("")
 
+
+  async function handleClick() {
+    const balance = await token.balanceOf(Principal.fromText(balanceId))
+    const symbol = await token.getSymbol()
+    setBalance(`${balance.toLocaleString()} ${symbol}`)
+  }
 
   return (
     <div className="window white">
@@ -15,6 +21,8 @@ function Balance() {
           id="balance-principal-id"
           type="text"
           placeholder="Enter a Principal ID"
+          onChange={(event) => setBalanceId(event.target.value)}
+          value={balanceId}
         />
       </p>
       <p className="trade-buttons">
@@ -25,7 +33,7 @@ function Balance() {
           Check Balance
         </button>
       </p>
-      <p>This account has a balance of XYZ.</p>
+      <p hidden={balance === ""}>This account has a balance of {balance} .</p>
     </div>
   );
 }
