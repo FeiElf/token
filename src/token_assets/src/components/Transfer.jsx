@@ -1,22 +1,30 @@
-import React, { useState } from "react";
-import { token } from "../../../declarations/token";
+import React, { useState } from "react"
+import { createActor, canisterId } from "../../../declarations/token"
+import { AuthClient } from "../../../../node_modules/@dfinity/auth-client/lib/cjs/index"
 import { Principal } from "@dfinity/principal"
 
 function Transfer() {
+  const [to, setTo] = useState("")
+  const [amount, setAmount] = useState("")
+  const [disabled, setDisabled] = useState(false)
+  const [feedback, setFeedback] = useState("")
 
-  const [to, setTo] = useState("");
-  const [amount, setAmount] = useState("");
-  const [disabled, setDisabled] = useState(false);
-  const [feedback, setFeedback] = useState("");
-  
   async function handleClick() {
-    setFeedback("");
-    setDisabled(true);
-    const principalTo = Principal.fromText(to);
-    const amountInt = parseInt(amount);
-    const result = await token.transfer(principalTo, amountInt);
-    setFeedback(result);
-    setDisabled(false);
+    setFeedback("")
+    setDisabled(true)
+    const principalTo = Principal.fromText(to)
+    const amountInt = parseInt(amount)
+
+    const authClient = await AuthClient.create()
+    const identity = await authClient.getIdentity()
+    const authenticatedCanister = createActor(canisterId, {
+      agentOptions: {
+        identity,
+      },
+    })
+    const result = await authenticatedCanister.transfer(principalTo, amountInt)
+    setFeedback(result)
+    setDisabled(false)
   }
 
   return (
@@ -30,7 +38,7 @@ function Transfer() {
                 type="text"
                 id="transfer-to-id"
                 value={to}
-                onChange={ (e) => setTo(e.target.value)}
+                onChange={(e) => setTo(e.target.value)}
               />
             </li>
           </ul>
@@ -43,7 +51,7 @@ function Transfer() {
                 type="number"
                 id="amount"
                 value={amount}
-                onChange={ (e) => setAmount(e.target.value)}
+                onChange={(e) => setAmount(e.target.value)}
               />
             </li>
           </ul>
@@ -56,7 +64,7 @@ function Transfer() {
         <p>{feedback}</p>
       </div>
     </div>
-  );
+  )
 }
 
-export default Transfer;
+export default Transfer
